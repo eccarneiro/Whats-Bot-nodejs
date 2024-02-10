@@ -13,56 +13,70 @@ client.on('ready', () => {
 });
 
 let stage = 'mainMenu';
-
-client.on('message', async (message) => {
-    if (stage === 'mainMenu') {
-        const inputs = ['oi', 'ola', 'eai', 'salve', 'opa', 'bom dia', 'boa tarde', 'boa noite', 'oie', 'slv', 'dae', 'e ai',]
-        if (inputs.some(input => input === message.body.toLowerCase())) {
-            await message.reply('Olá! Digite menu para ver as opções disponíveis.');
-        } else if (message.body === 'menu' || message.body === 'Menu') {
-            await message.reply('1 - Listar serviços.\n2 - Verificar meu agendamento. \n3 - Redes Sociais.');
-            stage = 'mainMenuOptions';
-        }
-    } else if (stage === 'mainMenuOptions') {
+const answerMainMenu = async (message) => {
+    const inputs = ['oi', 'ola', 'eai', 'salve', 'opa', 'bom dia', 'boa tarde', 'boa noite', 'oie', 'slv', 'dae', 'e ai',]
+    if (inputs.some(input => input === message.body.toLowerCase())) {
+        await message.reply('Olá! Digite menu para ver as opções disponíveis.');
+    } else if (message.body === 'menu' || message.body === 'Menu') {
+        await message.reply('1 - Listar serviços.\n2 - Verificar meu agendamento. \n3 - Redes Sociais.');
+        stage = 'mainMenuOptions';
+    }
+}
+const answerMainMenuOptions = async (message) => {
+    if (message.body === '1') {
+        await message.reply('1 - Corte de Cabelo.\n2 - Barba.\n3 - Corte e barba.\n 4 - Voltar para o menu principal.');
+        stage = 'servicos';
+    } else if (message.body === '2') {
+        await message.reply('Você não possui agendamentos. Deseja marcar ? \n 1 - Sim \n 2 - Não');
         if (message.body === '1') {
-            await message.reply('1 - Corte de Cabelo.\n2 - Barba.\n3 - Corte e barba.\n 4 - Voltar para o menu principal.');
-            stage = 'servicos';
-        } else if (message.body === '2') {
-            await message.reply('Você não possui agendamentos. Deseja marcar ? \n 1 - Sim \n 2 - Não');
-            if (message.body === '1') {
-                stage = 'agendamento';
-            }
-        } else if (message.body === '3') {
-            await message.reply('Instagram: @barbearia\nFacebook: Barbearia');
-
-            await client.sendMessage(message.from, 'Voltando para o menu de opções.\n 1 - Corte de Cabelo.\n2 - Barba.\n3 - Corte e barba.');
-            stage = 'mainMenuOptions';
-
-        } else if (message.body === '4') {
-            await client.sendMessage(message.from, 'Voltando para o menu principal...');
-            stage = 'mainMenu';
+            stage = 'agendamento';
         }
-    } else if (stage === 'servicos') {
-        if (message.body === '1') {
-            await message.reply('Corte de Cabelo: R$ 20,00');
-        } else if (message.body === '2') {
-            await message.reply('Barba: R$ 15,00');
-        } else if (message.body === '3') {
-            await message.reply('Corte e barba: R$ 30,00');
-        }
-        await client.sendMessage(message.from, 'Voltando para o menu principal. Digite menu para ver as opções disponíveis.');
+    } else if (message.body === '3') {
+        await message.reply('Instagram: @barbearia\nFacebook: Barbearia');
+
+        await client.sendMessage(message.from, 'Voltando para o menu de opções.\n 1 - Corte de Cabelo.\n2 - Barba.\n3 - Corte e barba.');
+        stage = 'mainMenuOptions';
+
+    } else if (message.body === '4') {
+        await client.sendMessage(message.from, 'Voltando para o menu principal...');
         stage = 'mainMenu';
+    }
+}
+const answerServicos = async (message) => {
+    if (message.body === '1') {
+        await message.reply('Corte de Cabelo: R$ 20,00');
+    } else if (message.body === '2') {
+        await message.reply('Barba: R$ 15,00');
+    } else if (message.body === '3') {
+        await message.reply('Corte e barba: R$ 30,00');
+    }
+    await client.sendMessage(message.from, 'Voltando para o menu principal. Digite menu para ver as opções disponíveis.');
+    stage = 'mainMenu';
+}
+const answerAgendamento = async (message) => {
+    if (message.body === '1') {
+        await message.reply('Digite a data e o horário desejado.');
+        stage = 'marcar';
+    } else if (message.body === '2') {
+        await client.sendMessage(message.from, 'Voltando para o menu principal.');
+        stage = 'mainMenu';
+    }
+}
+const answer = async (message) => {
+    if (stage === 'mainMenu') {
+        await answerMainMenu(message);
+    } else if (stage === 'mainMenuOptions') {
+        await answerMainMenuOptions(message);
+    } else if (stage === 'servicos') {
+        await answerServicos(message);
     } else if (stage === 'agendamento') {
-        if (message.body === '1') {
-            await message.reply('Digite a data e o horário desejado.');
-            stage = 'marcar';
-        } else if (message.body === '2') {
-            await client.sendMessage(message.from, 'Voltando para o menu principal.');
-            stage = 'mainMenu';
-        }
+        await answerAgendamento(message);
     } else if (stage === 'marcar') {
         // futuramente, logica para o agendamento.
     }
+}
+client.on('message', async (message) => {
+    await answer(message);
 });
 
 client.initialize();
